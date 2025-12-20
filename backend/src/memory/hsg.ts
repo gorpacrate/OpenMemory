@@ -44,6 +44,7 @@ export interface hsg_q_result {
     path: string[];
     salience: number;
     last_seen_at: number;
+    tags?: string[];
 }
 export const sector_configs: Record<string, sector_cfg> = {
     episodic: {
@@ -895,6 +896,7 @@ export async function hsg_query(
                 path: em?.path || [mid],
                 salience: sal,
                 last_seen_at: m.last_seen_at,
+                tags: m.tags ? JSON.parse(m.tags) : undefined,
             });
         }
         res.sort((a, b) => b.score - a.score);
