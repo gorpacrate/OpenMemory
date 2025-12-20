@@ -381,7 +381,7 @@ if (is_pg) {
         upd_waypoint: {
             run: (...p) =>
                 run_async(
-                    `update ${w} set weight=$2,updated_at=$3 where src_id=$1 and dst_id=$4`,
+                    `update ${w} set weight=$1,updated_at=$2 where src_id=$3 and dst_id=$4`,
                     p,
                 ),
         },
@@ -401,7 +401,7 @@ if (is_pg) {
         },
         upd_log: {
             run: (...p) =>
-                run_async(`update ${l} set status=$2,err=$3 where id=$1`, p),
+                run_async(`update ${l} set status=$1,err=$2 where id=$3`, p),
         },
         get_pending_logs: {
             all: () =>
