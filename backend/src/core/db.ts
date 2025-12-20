@@ -196,6 +196,34 @@ if (is_pg) {
         await pg.query(
             `create index if not exists openmemory_stats_type_idx on "${sc}"."stats"(type)`,
         );
+        // Temporal knowledge graph tables
+        await pg.query(
+            `create table if not exists "${sc}"."temporal_facts"(id text primary key,subject text not null,predicate text not null,object text not null,valid_from bigint not null,valid_to bigint,confidence double precision not null check(confidence >= 0 and confidence <= 1),last_updated bigint not null,metadata text,unique(subject,predicate,object,valid_from))`,
+        );
+        await pg.query(
+            `create table if not exists "${sc}"."temporal_edges"(id text primary key,source_id text not null,target_id text not null,relation_type text not null,valid_from bigint not null,valid_to bigint,weight double precision not null,metadata text)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_subject on "${sc}"."temporal_facts"(subject)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_predicate on "${sc}"."temporal_facts"(predicate)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_validity on "${sc}"."temporal_facts"(valid_from,valid_to)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_composite on "${sc}"."temporal_facts"(subject,predicate,valid_from,valid_to)`,
+        );
+        await pg.query(
+            `create index if not exists idx_edges_source on "${sc}"."temporal_edges"(source_id)`,
+        );
+        await pg.query(
+            `create index if not exists idx_edges_target on "${sc}"."temporal_edges"(target_id)`,
+        );
+        await pg.query(
+            `create index if not exists idx_edges_validity on "${sc}"."temporal_edges"(valid_from,valid_to)`,
+        );
         ready = true;
 
         // Initialize VectorStore
