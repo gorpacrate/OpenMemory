@@ -268,7 +268,7 @@ if (is_pg) {
         },
         upd_compressed_vec: {
             run: (...p) =>
-                run_async(`update ${m} set compressed_vec=$2 where id=$1`, p),
+                run_async(`update ${m} set compressed_vec=$1 where id=$2`, p),
         },
         upd_feedback: {
             run: (...p) =>
