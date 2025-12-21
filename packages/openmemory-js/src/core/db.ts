@@ -269,7 +269,7 @@ if (is_pg) {
         },
         upd_compressed_vec: {
             run: (...p) =>
-                run_async(`update ${m} set compressed_vec=$2 where id=$1`, p),
+                run_async(`update ${m} set compressed_vec=$1 where id=$2`, p),
         },
         upd_feedback: {
             run: (...p) =>
@@ -278,7 +278,7 @@ if (is_pg) {
         upd_seen: {
             run: (...p) =>
                 run_async(
-                    `update ${m} set last_seen_at=$2,salience=$3,updated_at=$4 where id=$1`,
+                    `update ${m} set last_seen_at=$1,salience=$2,updated_at=$3 where id=$4`,
                     p,
                 ),
         },
@@ -382,7 +382,7 @@ if (is_pg) {
         upd_waypoint: {
             run: (...p) =>
                 run_async(
-                    `update ${w} set weight=$2,updated_at=$3 where src_id=$1 and dst_id=$4`,
+                    `update ${w} set weight=$1,updated_at=$2 where src_id=$3 and dst_id=$4`,
                     p,
                 ),
         },
@@ -402,7 +402,7 @@ if (is_pg) {
         },
         upd_log: {
             run: (...p) =>
-                run_async(`update ${l} set status=$2,err=$3 where id=$1`, p),
+                run_async(`update ${l} set status=$1,err=$2 where id=$3`, p),
         },
         get_pending_logs: {
             all: () =>
