@@ -6,6 +6,13 @@ import * as path from "path";
 import * as os from "os";
 import ffmpeg from "fluent-ffmpeg";
 import OpenAI from "openai";
+
+// Polyfill browser globals for pdfjs-dist (used by pdf-parse)
+import { DOMMatrix, DOMPoint, Path2D } from "@napi-rs/canvas";
+(globalThis as any).DOMMatrix = DOMMatrix;
+(globalThis as any).DOMPoint = DOMPoint;
+(globalThis as any).Path2D = Path2D;
+
 const TurndownService = require("turndown");
 
 const execAsync = promisify(exec);
