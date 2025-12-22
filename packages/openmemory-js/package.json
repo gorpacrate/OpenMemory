@@ -16,6 +16,7 @@
         "migrate": "tsx src/migrate.ts"
     },
     "dependencies": {
+        "@napi-rs/canvas": "^0.1.65",
         "@aws-sdk/client-bedrock-runtime": "^3.932.0",
         "@modelcontextprotocol/sdk": "^1.22.0",
         "dotenv": "^16.6.1",

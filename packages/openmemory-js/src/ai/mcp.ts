@@ -85,6 +85,7 @@ export const create_mcp_srv = () => {
         { capabilities: { tools: {}, resources: {}, logging: {} } },
     );
 
+    // @ts-expect-error - MCP SDK type inference too deep
     srv.tool(
         "openmemory_query",
         "Run a semantic retrieval against OpenMemory",
@@ -156,6 +157,7 @@ export const create_mcp_srv = () => {
         },
     );
 
+    // @ts-expect-error - MCP SDK type inference too deep
     srv.tool(
         "openmemory_store",
         "Persist new content into OpenMemory",
@@ -283,6 +285,7 @@ export const create_mcp_srv = () => {
         },
     );
 
+    // @ts-expect-error - MCP SDK type inference too deep
     srv.tool(
         "openmemory_get",
         "Fetch a single memory by identifier",

@@ -17,7 +17,7 @@ type q_type = {
     upd_mem_with_sector: { run: (...p: any[]) => Promise<void> };
     del_mem: { run: (...p: any[]) => Promise<void> };
     get_mem: { get: (id: string) => Promise<any> };
-    get_mem_by_simhash: { get: (simhash: string) => Promise<any> };
+    get_mem_by_simhash: { get: (simhash: string, user_id?: string) => Promise<any> };
     all_mem: { all: (limit: number, offset: number) => Promise<any[]> };
     all_mem_by_sector: {
         all: (sector: string, limit: number, offset: number) => Promise<any[]>;
@@ -197,6 +197,34 @@ if (is_pg) {
         await pg.query(
             `create index if not exists openmemory_stats_type_idx on "${sc}"."stats"(type)`,
         );
+        // Temporal knowledge graph tables
+        await pg.query(
+            `create table if not exists "${sc}"."temporal_facts"(id text primary key,subject text not null,predicate text not null,object text not null,valid_from bigint not null,valid_to bigint,confidence double precision not null check(confidence >= 0 and confidence <= 1),last_updated bigint not null,metadata text,unique(subject,predicate,object,valid_from))`,
+        );
+        await pg.query(
+            `create table if not exists "${sc}"."temporal_edges"(id text primary key,source_id text not null,target_id text not null,relation_type text not null,valid_from bigint not null,valid_to bigint,weight double precision not null,metadata text)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_subject on "${sc}"."temporal_facts"(subject)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_predicate on "${sc}"."temporal_facts"(predicate)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_validity on "${sc}"."temporal_facts"(valid_from,valid_to)`,
+        );
+        await pg.query(
+            `create index if not exists idx_temporal_composite on "${sc}"."temporal_facts"(subject,predicate,valid_from,valid_to)`,
+        );
+        await pg.query(
+            `create index if not exists idx_edges_source on "${sc}"."temporal_edges"(source_id)`,
+        );
+        await pg.query(
+            `create index if not exists idx_edges_target on "${sc}"."temporal_edges"(target_id)`,
+        );
+        await pg.query(
+            `create index if not exists idx_edges_validity on "${sc}"."temporal_edges"(valid_from,valid_to)`,
+        );
         ready = true;
 
         // Initialize VectorStore
@@ -241,7 +269,7 @@ if (is_pg) {
         },
         upd_compressed_vec: {
             run: (...p) =>
-                run_async(`update ${m} set compressed_vec=$2 where id=$1`, p),
+                run_async(`update ${m} set compressed_vec=$1 where id=$2`, p),
         },
         upd_feedback: {
             run: (...p) =>
@@ -250,7 +278,7 @@ if (is_pg) {
         upd_seen: {
             run: (...p) =>
                 run_async(
-                    `update ${m} set last_seen_at=$2,salience=$3,updated_at=$4 where id=$1`,
+                    `update ${m} set last_seen_at=$1,salience=$2,updated_at=$3 where id=$4`,
                     p,
                 ),
         },
@@ -275,10 +303,12 @@ if (is_pg) {
             get: (id) => get_async(`select * from ${m} where id=$1`, [id]),
         },
         get_mem_by_simhash: {
-            get: (simhash) =>
+            get: (simhash, user_id) =>
                 get_async(
-                    `select * from ${m} where simhash=$1 order by salience desc limit 1`,
-                    [simhash],
+                    user_id
+                        ? `select * from ${m} where simhash=$1 and user_id=$2 order by salience desc limit 1`
+                        : `select * from ${m} where simhash=$1 order by salience desc limit 1`,
+                    user_id ? [simhash, user_id] : [simhash],
                 ),
         },
         all_mem: {
@@ -354,7 +384,7 @@ if (is_pg) {
         upd_waypoint: {
             run: (...p) =>
                 run_async(
-                    `update ${w} set weight=$2,updated_at=$3 where src_id=$1 and dst_id=$4`,
+                    `update ${w} set weight=$1,updated_at=$2 where src_id=$3 and dst_id=$4`,
                     p,
                 ),
         },
@@ -374,7 +404,7 @@ if (is_pg) {
         },
         upd_log: {
             run: (...p) =>
-                run_async(`update ${l} set status=$2,err=$3 where id=$1`, p),
+                run_async(`update ${l} set status=$1,err=$2 where id=$3`, p),
         },
         get_pending_logs: {
             all: () =>
@@ -661,10 +691,12 @@ if (is_pg) {
             get: (id) => one("select * from memories where id=?", [id]),
         },
         get_mem_by_simhash: {
-            get: (simhash) =>
+            get: (simhash, user_id) =>
                 one(
-                    "select * from memories where simhash=? order by salience desc limit 1",
-                    [simhash],
+                    user_id
+                        ? "select * from memories where simhash=? and user_id=? order by salience desc limit 1"
+                        : "select * from memories where simhash=? order by salience desc limit 1",
+                    user_id ? [simhash, user_id] : [simhash],
                 ),
         },
         all_mem: {

@@ -89,6 +89,7 @@ export function mem(app: any) {
                     path: x.path,
                     salience: x.salience,
                     last_seen_at: x.last_seen_at,
+                    tags: x.tags,
                 })),
             });
         } catch (e: any) {
